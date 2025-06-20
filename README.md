@@ -45,10 +45,12 @@ UOPS-E2EE is a conceptual project by **Muhammed Shafin P** (GitHub: [hejhdiss](h
 
 ## Learn More
 
-For more, see the original article detailing the UOPS-E2EE concept on medium.com:
+For more, see the original article detailing the UOPS-E2EE concept:
 
-* **UOPS-E2EE: A Deep Dive into the Future of Ultra-Secure, Covert Communication**
-    [https://medium.com/@hejhdiss/uops-e2ee-a-deep-dive-into-the-future-of-ultra-secure-covert-communication-3ea253d95318](https://medium.com/@hejhdiss/uops-e2ee-a-deep-dive-into-the-future-of-ultra-secure-covert-communication-3ea253d95318)
+* [UOPS-E2EE on Medium](https://medium.com/@hejhdiss/uops-e2ee-a-deep-dive-into-the-future-of-ultra-secure-covert-communication-3ea253d95318)
+* [UOPS-E2EE on dev.to](https://dev.to/hejhdiss/uops-e2ee-a-deep-dive-into-the-future-of-ultra-secure-covert-communication-1d58)
+* [UOPS-E2EE on LinkedIn Pulse](https://www.linkedin.com/pulse/uops-e2ee-deep-dive-future-ultra-secure-covert-communication-p-p0oje)
+* [UOPS-E2EE on Quora](https://www.quora.com/profile/Muhammed-Shafin-P/UOPS-E2EE-A-Deep-Dive-into-the-Future-of-Ultra-Secure-Covert-Communication-In-an-era-where-digital-surveillance-is-pe)
 
 ---
 

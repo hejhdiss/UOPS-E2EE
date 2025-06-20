@@ -1,59 +1,121 @@
-# TLSE — Time-Locked Symmetric Encryption
+# UOPS-E2EE: Unicode-Obscured Pre-Shared Key End-to-End Encryption with StegoKey and Out-of-Band Delivery
 
-**Built-in Time. Minute-Based Key. Zero Key Exchange.**
+---
 
-**Author:** Muhammed Shafin P ([@hejhdiss](https://github.com/hejhdiss))  
-**License:** Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)  
-**Status:** Concept Phase (PoC / Research)
+## Status: Conceptual & Under Development
 
-## Overview
+This repository outlines the conceptual framework for **UOPS-E2EE**, a highly secure communication model and a planned Capture The Flag (CTF) challenge. It explores extreme security constraints where no encryption keys are ever exchanged during runtime.
 
-TLSE is a time-based symmetric encryption system that generates a unique encryption key every minute, based on the current hour and minute (`HHMM`) combined with a user-defined secret phrase. This phrase is shared out-of-band and never transmitted online. The key auto-expires every 60 seconds. TLSE is designed to operate entirely offline — ideal for secure local or air-gapped environments, CTF systems, and private message exchange. TLSE operates without any key exchange or session handshake over the network. All encryption and decryption processes are handled independently by the binary, using an embedded internal clock reference.
+---
 
-The fundamental innovation of TLSE lies in its elimination of traditional key distribution challenges. Instead of requiring complex cryptographic handshakes or pre-shared keys that must be securely transmitted, TLSE leverages the universal constant of time itself as a synchronization mechanism. Both parties need only agree on a shared secret phrase beforehand, which can be exchanged through any secure channel, and the system automatically generates matching encryption keys based on the current time. This approach significantly reduces the attack surface typically associated with key exchange protocols while maintaining strong cryptographic security through the use of established algorithms like SHA-256 and AES-256.
+## Core Concepts
 
-## Encryption Flow
+UOPS-E2EE is designed around a multi-layered approach to digital concealment and encryption:
 
-Both the sender and receiver generate the same symmetric key at any given minute using the formula: `KEY = SHA256(user_secret_phrase + HHMM)`. This key is then used to encrypt or decrypt data using AES-256 (CBC/GCM mode). The binary includes a micro-timer or runtime clock embedded inside itself — it does not depend on the system NTP or network time. Unicode-level obfuscation is applied to the ciphertext output so that even encrypted content avoids detection via common binary patterns or entropy scans. This makes TLSE suitable for stealth use in plain-text transmissions or restricted environments.
+1.  **Pre-Shared Keys (PSK) Paradigm:** All decryption relies solely on keys that are "pre-shared"—meaning both client and server possess the necessary key material *before* any communication occurs. No key negotiation, exchange, or transmission happens over the wire.
 
-The encryption process begins when the TLSE binary reads the current time from its internal clock mechanism, which operates independently of system time to prevent manipulation through NTP spoofing or system clock adjustments. The HHMM value is concatenated with the user's secret phrase and processed through SHA-256 to produce a 256-bit key. This key is then used with AES-256 in either CBC or GCM mode to encrypt the plaintext data. The resulting ciphertext undergoes additional obfuscation to mask its cryptographic nature, making it appear as ordinary text data to automated scanning systems. This multi-layered approach ensures that even if the encrypted data is intercepted, it provides no obvious indicators of its encrypted nature.
+2.  **StegoKey for Key Reconstruction:** Decryption keys aren't stored directly in plain sight. Instead, they're reconstructed from fragments meticulously hidden using **steganography**. These fragments are embedded within innocuous-looking public media or directories (e.g., hidden within an `/icons/` folder, embedded in an image file via LSB encoding, or disguised in metadata).
 
-## First-Message Sync Logic
+3.  **Unicode-Obscured Server Paths:** Server endpoints are camouflaged using sophisticated Unicode manipulation. This involves leveraging zero-width characters, homoglyphs, and other Unicode tricks to make server routes appear benign or common, effectively cloaking the true paths from typical enumeration and fuzzing tools.
 
-If the receiver cannot decrypt a message using the current time-derived key or its ±1 minute fallback, TLSE enters a scan mode. It attempts to decrypt using keys derived from **00:00 to 23:59**, checking each minute until decryption is successful. Once a match is found, that specific minute becomes the receiver's synced reference point for the rest of the session. This means TLSE can auto-sync without any parsing of timestamps or additional metadata — all logic is embedded in encrypted payload handling. This allows TLSE to function as a zero-time-expectation secure communication method, requiring no prior synchronization or pairing step.
+4.  **Strong Symmetric Encryption:** The entire communication pipeline is secured with robust symmetric encryption algorithms (e.g., AES-256, ChaCha20). Data is encrypted on the client-side *before* transmission and decrypted on the server-side using its internal copy of the pre-shared key.
 
-The synchronization mechanism is designed to handle real-world scenarios where perfect time alignment between parties may not be achievable. When a receiver encounters an encrypted message that cannot be decrypted with the current minute's key, the system intelligently searches through all possible time-based keys within a 24-hour window. This brute-force approach is computationally feasible because there are only 1,440 possible keys per day (24 hours × 60 minutes). Once successful decryption occurs, the system establishes the sender's time reference and can maintain synchronization for subsequent messages. This eliminates the need for time servers, timestamp headers, or complex synchronization protocols that could compromise the system's stealth characteristics.
+5.  **No Key Transmission:** A fundamental principle: at no point are keys transmitted, requested, or exchanged, rendering the communication channel opaque to interception or man-in-the-middle attacks, even if the channel itself is compromised.
 
-## Security Design
+6.  **Binary-Only Distribution & Obfuscation:** Both the frontend client and backend server are intended for distribution in binary-only form. The frontend's internals will be further obfuscated to resist static and dynamic analysis, adding another layer of challenge for reverse engineering.
 
-Although the system is lightweight and intended for **consumer-level use**, the internal logic is designed with **high-level cryptographic principles**. Each key is ephemeral and session-bound to a single minute. The binary is compiled with full irreversible protections — including **code confusion, internal renaming, hashed function names**, and string obfuscation — to prevent reverse engineering or tampering. The structure and behavior of the binary remain unreadable even under static analysis or disassembly. TLSE can also be paired with external PINs or device-tied secrets for multi-factor validation if desired in future versions.
+7.  **Isolated Environment:** The system is designed to operate in a highly controlled, localized environment, typically bound to `localhost` with no external network access, simulating an high-security deployment.
 
-The security model of TLSE addresses several attack vectors commonly associated with symmetric encryption systems. The minute-based key rotation significantly limits the window of vulnerability for any single key compromise. Even if an attacker successfully extracts a key through cryptanalysis or side-channel attacks, that key becomes useless within 60 seconds. The use of SHA-256 for key derivation provides strong resistance against collision attacks and ensures that even minor changes in the secret phrase result in completely different keys. The binary protection mechanisms prevent attackers from easily analyzing the encryption logic or extracting embedded constants. Forward secrecy is inherently provided since old keys cannot be regenerated without knowledge of the exact time they were used, and the system does not store historical key information.
+---
 
-## Use Cases
+## Purpose
 
-TLSE is ideal for local secure messaging, encrypted clipboard sharing, offline keyless device authentication, CTF challenges with time-based unlocking, air-gapped command execution, and secure boot flows in embedded systems. Since no keys are exchanged and each minute has a unique key, there is minimal attack surface and no persistent sessions to exploit. TLSE enables encrypted communication using nothing but shared time and a phrase.
+The primary goal of UOPS-E2EE is to serve as:
 
-The application domains for TLSE extend beyond traditional encrypted messaging to include scenarios where conventional cryptographic infrastructure is unavailable or undesirable. In air-gapped environments, TLSE provides a means of secure communication without requiring network connectivity for key exchange. For CTF competitions and security training, the time-locked nature creates natural puzzle elements where participants must coordinate timing or deduce temporal relationships. In embedded systems and IoT devices, TLSE offers a lightweight alternative to complex key management systems while maintaining strong security guarantees. The system's independence from external time sources makes it particularly valuable in hostile environments where NTP servers may be compromised or unavailable.
+* A **conceptual framework** for exploring advanced techniques in secure communication, combining encryption, steganography, and software obfuscation.
+* A challenging **Capture The Flag (CTF)** scenario, pushing participants to think outside the box, analyze deeply obfuscated binaries, understand complex steganographic techniques, and navigate Unicode-based deception.
 
-## Status
+---
 
-TLSE is currently in the **conceptual and prototype stage**. Public binaries or demo scripts may be released as part of a PoC or CTF challenge. The project is part of the **BytexGrid Research Series** by Muhammed Shafin P, exploring ultra-secure offline encryption methods without traditional network-based cryptographic dependencies.
+## Creator
 
-Development efforts are focused on creating a robust reference implementation that demonstrates the viability of minute-based symmetric encryption in real-world scenarios. The prototype will include comprehensive testing of the synchronization mechanisms, performance benchmarking of the encryption/decryption processes, and security analysis of the key derivation function. Future research directions include investigating the optimal balance between sync window size and security, exploring integration with hardware security modules for enhanced secret phrase protection, and developing standardized protocols for TLSE adoption in various application domains.
+UOPS-E2EE is a conceptual project by **Muhammed Shafin P** (GitHub: [hejhdiss](https://github.com/hejhdiss)).
+
+---
+
+## Learn More
+
+For more, see the original article detailing the UOPS-E2EE concept:
+
+* [UOPS-E2EE on Medium](https://medium.com/@hejhdiss/uops-e2ee-a-deep-dive-into-the-future-of-ultra-secure-covert-communication-3ea253d95318)
+* [UOPS-E2EE on dev.to](https://dev.to/hejhdiss/uops-e2ee-a-deep-dive-into-the-future-of-ultra-secure-covert-communication-1d58)
+* [UOPS-E2EE on LinkedIn Pulse](https://www.linkedin.com/pulse/uops-e2ee-deep-dive-future-ultra-secure-covert-communication-p-p0oje)
+* [UOPS-E2EE on Quora](https://www.quora.com/profile/Muhammed-Shafin-P/UOPS-E2EE-A-Deep-Dive-into-the-Future-of-Ultra-Secure-Covert-Communication-In-an-era-where-digital-surveillance-is-pe)
+
+---
+
+## Steganography Implementation Details and Future Enhancements
+
+The provided `inject.py` script serves as a **sample implementation** for the steganography usage in the base version of UOPS-E2EE. It demonstrates how secrets (flag and XOR key) are appended to image files with magic strings.
+
+Future enhancements to the steganography methods are planned across different versions:
+
+### Version Planning: Security Enhancements
+
+#### Security v1.0.0
+This release will focus on making the embedded data significantly harder to identify and extract:
+* **Advanced Encoding:** Stored data within the steganographic files will be further encoded (e.g., using Base64, custom obfuscation, or other cryptographic techniques) *before* embedding.
+* **Decoy Structural Identicality:** All flag and key-containing PNG files, including decoys, will be designed to be structurally identical or begin with an identical structure. For instance, if a real key is `12345` and it's Base64 encoded to `MTIzNDU=`, then both genuine and decoy files might save content in the format `#KEYFLAG#{a_content}`. The `{a_content}` will vary, but only the creator (or the released binary) will possess the logic to differentiate between actual data and decoy content, making it much harder to simply extract based on format. This ensures that all decoys appear to contain valid-looking (but meaningless) "secret" content.
+
+#### Security v1.1.2
+Building upon `v1.0.0`, this release will introduce an additional layer of obfuscation:
+* **Dual Encoding:** Data will be encoded using one method and then re-encoded using another, distinct method. This layered encoding ensures that only the binary (or its creator) will possess the precise knowledge and sequence of decoding steps required to extract the true secret, significantly increasing the complexity for reverse engineering and data extraction.
+
+#### Security v1.3.0
+This version will introduce highly advanced, dynamic steganography techniques:
+* **Polymorphic Steganography:** The steganographic embedding method itself will become variable. Instead of a fixed algorithm (e.g., LSB), the embedding technique (e.g., embedding in pixel data, metadata, or file structure) could change, potentially even on a per-file or per-session basis, determined by a hidden parameter or an algorithm known only to the binary.
+* **Dynamic Key Fragment Placement:** The location and number of key fragments will no longer be static. A sophisticated algorithm, derived from a master key or derived at runtime, will determine which icons (or other media) contain parts of the key and where within those files they are embedded. This adds another layer of dynamic challenge, preventing static analysis from pinpointing secret locations.
+
+#### Security v1.5.6
+This version will introduce an advanced network architecture for enhanced resilience and privacy:
+* **Intermediate Server Support (Non-Decrypting):** An intermediate server will be introduced between the client and the final backend. Crucially, this server will *not* have access to any decryption keys and will therefore never see the unencrypted content. Its role will be to perform security-enhancing functions on the encrypted traffic.
+* **Encrypted Traffic Transformation:** The intermediate server will implement obfuscation and transformation techniques on the *already encrypted* data stream. This could include:
+    * **Traffic Padding & Randomization:** Adding random bytes or dummy packets to obscure actual data transfer patterns and sizes.
+    * **Protocol Obfuscation:** Rerouting or disguising the communication to appear as common, innocuous network traffic (e.g., DNS, HTTPS to a common service), further hindering traffic analysis.
+    * **Rate Limiting & Anti-DDoS:** Basic network-level protections that do not require content inspection.
+    This approach provides an additional layer of security by making traffic analysis and interception more difficult, without compromising the end-to-end encryption.
+
+#### Security v1.7.8
+This version will introduce adaptive and resilient self-protection mechanisms:
+* **Adaptive Obfuscation:** The client and server binaries will dynamically alter their own code, memory patterns, or communication protocols in response to detected analysis attempts (e.g., debugging, sandboxing, reverse engineering tools). This could involve re-encrypting parts of the binary, changing function call sequences, or altering the Unicode obfuscation patterns, making it extremely difficult for an attacker to maintain a consistent analysis environment.
+* **Self-Healing Network Components:** Components of the UOPS-E2EE system (e.g., the intermediate server, client) will possess logic to detect unusual network activity or attempts to disrupt communication. In response, they could dynamically change ports (selecting from available, unused ports), rotate intermediary nodes, or adjust their traffic obfuscation strategies. This ensures the communication path remains operational and secure despite targeted attacks.
+
+#### Security v2.0.0 (Major Evolution)
+This major version aims for a paradigm shift towards extreme resilience and decentralized trust:
+* **Decentralized Key Fragment Management:** Key fragments will be dynamically stored and retrieved across a distributed network of non-trusting nodes. This could involve using public web services, content delivery networks (CDNs), or a network of dedicated (but not content-aware) UOPS-E2EE nodes, eliminating reliance on any single central storage location for key components.
+* **Federated Steganography Orchestration (Non-Content DLT):** A lightweight Distributed Ledger Technology (DLT) or blockchain will be used, not for storing actual encrypted data, but for orchestrating the dynamic retrieval and application of steganographic methods. This ledger could store hashes, pointers, and rules, providing an auditable, resilient, and tamper-proof mechanism for the binary to discover *how* to reconstruct its decryption logic and where to find the necessary steganographic elements, all without revealing the secrets themselves. This design reduces central control and enhances resistance to compromise.
+* **Honeypot and Deception Network Integration:** Dynamic honeypots and advanced deception techniques will be integrated directly into the network architecture. Any attempt to interact with non-legitimate UOPS-E2EE paths, services, or steganographic decoys will trigger automated responses, such as serving misleading data, altering the perceived environment, or initiating resource-intensive challenges, effectively confusing and deterring attackers.
+
+---
+
+## Contributions and Future Licensing
+
+While the conceptual framework documentation in this repository is licensed under CC BY-SA 4.0, any future code implementations of UOPS-E2EE will be released under a permissive open-source license such as the **MIT License** or **Apache License 2.0**.
+
+The author encourages and welcomes contributions to this project. If you are interested in contributing to the development and implementation of UOPS-E2EE, please be aware that your contributions to the codebase will also fall under either the MIT or Apache 2.0 license, ensuring a flexible and collaborative environment for the software components.
+
+---
 
 ## License
 
-This project is licensed under the **Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)**. You are free to share, adapt, remix, or build upon this project — even commercially — as long as you give proper credit and license your modifications under the same terms.
+This work, UOPS-E2EE (the conceptual framework and its documentation), is licensed by **Muhammed Shafin P** under a **Creative Commons Attribution-ShareAlike 4.0 International License**.
 
-Full license: https://creativecommons.org/licenses/by-sa/4.0/
+[https://creativecommons.org/licenses/by-sa/4.0/](https://creativecommons.org/licenses/by-sa/4.0/)
 
-The choice of CC BY-SA 4.0 reflects the research-oriented nature of this project and the desire to ensure that improvements and modifications remain available to the broader community. Developers who wish to create commercial implementations are encouraged to consider dual-licensing approaches or to contact the author regarding alternative licensing arrangements. The attribution requirement ensures that the original research contributions are properly recognized while the share-alike provision promotes collaborative development and prevents proprietary capture of community innovations.
+You are free to:
+* **Share** — copy and redistribute the material in any medium or format.
+* **Adapt** — remix, transform, and build upon the material for any purpose, even commercially.
 
-## Contributing and Future Development
-
-TLSE represents a bold step toward redefining how secure encryption can work without exchanging keys, requiring synchronization, or relying on internet infrastructure. It offers a promising direction for systems that demand privacy, portability, and operational security. Developers and researchers interested in collaborating, testing, or extending this protocol are welcome to audit and contribute.
-
-The project welcomes contributions in several key areas: cryptographic analysis and security auditing, performance optimization and implementation efficiency, cross-platform compatibility and embedded system support, and formal verification of the synchronization algorithms. Researchers interested in exploring variations of the core concept, such as different time granularities or alternative key derivation functions, are encouraged to fork the project and share their findings. The ultimate goal is to establish TLSE as a viable alternative to traditional key exchange mechanisms in scenarios where simplicity, offline operation, and stealth characteristics are paramount.
-
-**Note:** The author recommends that derivative implementations based on this idea be published under MIT or Apache 2.0 licenses to encourage broader adoption and commercial use.
+Under the following terms:
+* **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+* **ShareAlike** — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.

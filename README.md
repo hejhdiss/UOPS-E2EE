@@ -45,9 +45,9 @@ UOPS-E2EE is a conceptual project by **Muhammed Shafin P** (GitHub: [hejhdiss](h
 
 ## Learn More
 
-For more, see the original article detailing the UOPS-E2EE concept on dev.to:
+For more, see the original article detailing the UOPS-E2EE concept on medium.com:
 
-* **UOPS-E2EE: A High-Security Communication Model and CTF Challenge Concept**
+* **UOPS-E2EE: A Deep Dive into the Future of Ultra-Secure, Covert Communication**
     [https://medium.com/@hejhdiss/uops-e2ee-a-deep-dive-into-the-future-of-ultra-secure-covert-communication-3ea253d95318](https://medium.com/@hejhdiss/uops-e2ee-a-deep-dive-into-the-future-of-ultra-secure-covert-communication-3ea253d95318)
 
 ---

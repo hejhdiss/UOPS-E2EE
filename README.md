@@ -83,6 +83,11 @@ This version will introduce an advanced network architecture for enhanced resili
     * **Rate Limiting & Anti-DDoS:** Basic network-level protections that do not require content inspection.
     This approach provides an additional layer of security by making traffic analysis and interception more difficult, without compromising the end-to-end encryption.
 
+#### Security v1.7.8
+This version will introduce adaptive and resilient self-protection mechanisms:
+* **Adaptive Obfuscation:** The client and server binaries will dynamically alter their own code, memory patterns, or communication protocols in response to detected analysis attempts (e.g., debugging, sandboxing, reverse engineering tools). This could involve re-encrypting parts of the binary, changing function call sequences, or altering the Unicode obfuscation patterns, making it extremely difficult for an attacker to maintain a consistent analysis environment.
+* **Self-Healing Network Components:** Components of the UOPS-E2EE system (e.g., the intermediate server, client) will possess logic to detect unusual network activity or attempts to disrupt communication. In response, they could dynamically change ports, rotate intermediary nodes, or adjust their traffic obfuscation strategies, effectively "healing" the communication path and maintaining operational security despite targeted attacks.
+
 ---
 
 ## Contributions and Future Licensing
@@ -95,7 +100,7 @@ The author encourages and welcomes contributions to this project. If you are int
 
 ## License
 
-This work, UOPS-E2EE (the conceptual framework and its documentation), is licensed under a **Creative Commons Attribution-ShareAlike 4.0 International License**.
+This work, UOPS-E2EE (the conceptual framework and its documentation), is licensed by **Muhammed Shafin P** under a **Creative Commons Attribution-ShareAlike 4.0 International License**.
 
 [https://creativecommons.org/licenses/by-sa/4.0/](https://creativecommons.org/licenses/by-sa/4.0/)
 

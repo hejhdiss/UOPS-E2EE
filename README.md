@@ -52,6 +52,39 @@ For more, see the original article detailing the UOPS-E2EE concept on dev.to:
 
 ---
 
+## Steganography Implementation Details and Future Enhancements
+
+The provided `inject.py` script serves as a **sample implementation** for the steganography usage in the base version of UOPS-E2EE. It demonstrates how secrets (flag and XOR key) are appended to image files with magic strings.
+
+Future enhancements to the steganography methods are planned across different versions:
+
+### Version Planning: Security Enhancements
+
+#### Security v1.0.0
+This release will focus on making the embedded data significantly harder to identify and extract:
+* **Advanced Encoding:** Stored data within the steganographic files will be further encoded (e.g., using Base64, custom obfuscation, or other cryptographic techniques) *before* embedding.
+* **Decoy Structural Identicality:** All flag and key-containing PNG files, including decoys, will be designed to be structurally identical or begin with an identical structure. For instance, if a real key is `12345` and it's Base64 encoded to `MTIzNDU=`, then both genuine and decoy files might save content in the format `#KEYFLAG#{a_content}`. The `{a_content}` will vary, but only the creator (or the released binary) will possess the logic to differentiate between actual data and decoy content, making it much harder to simply extract based on format. This ensures that all decoys appear to contain valid-looking (but meaningless) "secret" content.
+
+#### Security v1.1.2
+Building upon `v1.0.0`, this release will introduce an additional layer of obfuscation:
+* **Dual Encoding:** Data will be encoded using one method and then re-encoded using another, distinct method. This layered encoding ensures that only the binary (or its creator) will possess the precise knowledge and sequence of decoding steps required to extract the true secret, significantly increasing the complexity for reverse engineering and data extraction.
+
+#### Security v1.3.0
+This version will introduce highly advanced, dynamic steganography techniques:
+* **Polymorphic Steganography:** The steganographic embedding method itself will become variable. Instead of a fixed algorithm (e.g., LSB), the embedding technique (e.g., embedding in pixel data, metadata, or file structure) could change, potentially even on a per-file or per-session basis, determined by a hidden parameter or an algorithm known only to the binary.
+* **Dynamic Key Fragment Placement:** The location and number of key fragments will no longer be static. A sophisticated algorithm, derived from a master key or derived at runtime, will determine which icons (or other media) contain parts of the key and where within those files they are embedded. This adds another layer of dynamic challenge, preventing static analysis from pinpointing secret locations.
+
+#### Security v1.5.6
+This version will introduce an advanced network architecture for enhanced resilience and privacy:
+* **Intermediate Server Support (Non-Decrypting):** An intermediate server will be introduced between the client and the final backend. Crucially, this server will *not* have access to any decryption keys and will therefore never see the unencrypted content. Its role will be to perform security-enhancing functions on the encrypted traffic.
+* **Encrypted Traffic Transformation:** The intermediate server will implement obfuscation and transformation techniques on the *already encrypted* data stream. This could include:
+    * **Traffic Padding & Randomization:** Adding random bytes or dummy packets to obscure actual data transfer patterns and sizes.
+    * **Protocol Obfuscation:** Rerouting or disguising the communication to appear as common, innocuous network traffic (e.g., DNS, HTTPS to a common service), further hindering traffic analysis.
+    * **Rate Limiting & Anti-DDoS:** Basic network-level protections that do not require content inspection.
+    This approach provides an additional layer of security by making traffic analysis and interception more difficult, without compromising the end-to-end encryption.
+
+---
+
 ## Contributions and Future Licensing
 
 While the conceptual framework documentation in this repository is licensed under CC BY-SA 4.0, any future code implementations of UOPS-E2EE will be released under a permissive open-source license such as the **MIT License** or **Apache License 2.0**.

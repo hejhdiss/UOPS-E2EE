@@ -1,5 +1,7 @@
 # UOPS-E2EE: Unicode-Obscured Pre-Shared Key End-to-End Encryption with StegoKey and Out-of-Band Delivery
 
+**Part of the Aetherokrypt Research Series by Muhammed Shafin P**
+
 ---
 
 ## Status: Conceptual & Under Development
